@@ -133,7 +133,7 @@ function TeacherForm() {
                 { value: "Biologia", label: "Biologia" },
                 { value: "Geografia", label: "Geografia" },
                 { value: "Matematica", label: "Matemática" },
-                { value: "Ingles", label: "Ingles" },
+                { value: "Ingles", label: "Inglês" },
                 { value: "Historia", label: "História" },
                 { value: "Fisica", label: "Física" },
                 { value: "Portugues", label: "Português" },
