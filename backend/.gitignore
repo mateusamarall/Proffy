@@ -1,2 +1,2 @@
 node_modules/
-databa.sqlite
+src/database/databa.sqlite

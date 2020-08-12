@@ -1,39 +1,91 @@
-import React from "react";
-import { View, Image, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Image, Text, Linking } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
-
+import AsyncStorage from "@react-native-community/async-storage";
 import heartOutlineIcon from "../../assets/images/icons/heart-outline.png";
 import unfavoriteIcon from "../../assets/images/icons/unfavorite.png";
 import whatsappIcon from "../../assets/images/icons/whatsapp.png";
 
+export interface Teacher {
+  id: number;
+  avatar: string;
+  bio: string;
+  cost: number;
+  name: string;
+  subject: string;
+  whatsapp: string;
+}
+
+interface TeacherItemProps {
+  teacher: Teacher;
+  favorited: boolean;
+}
 import styles from "./styles";
-function TeacherItem() {
+import api from "../../services/api";
+const TeacherItem: React.FC<TeacherItemProps> = ({ teacher, favorited }) => {
+  const [isFavorited, setIsFavorited] = useState(favorited);
+  function handleLinkToWhatsapp() {
+    api.post("connections", {
+      user_id: teacher.id,
+    });
+    Linking.openURL(`whatsapp://send?phone=${teacher.whatsapp}`);
+  }
+
+  async function handleToggleFavorited() {
+    const favorites = await AsyncStorage.getItem("favorites");
+    let favoritesArray = [];
+    if (favorites) {
+      favoritesArray = JSON.parse(favorites);
+    }
+    if (isFavorited) {
+      const favoritedIndex = favoritesArray.findIndex(
+        (teacherItem: Teacher) => {
+          return teacherItem.id === teacher.id;
+        }
+      );
+      favoritesArray.splice([favoritedIndex, 1]);
+      setIsFavorited(false);
+    } else {
+      favoritesArray.push(teacher);
+      setIsFavorited(true);
+    }
+    await AsyncStorage.setItem("favorites", JSON.stringify(favoritesArray));
+  }
   return (
     <View style={styles.container}>
       <View style={styles.profile}>
         <Image
           style={styles.avatar}
           source={{
-            uri:
-              "https://avatars0.githubusercontent.com/u/37390930?s=460&u=e72e2e0ce6ae28b21c775c7fbb2f97223c1b88a5&v=4",
+            uri: teacher.avatar,
           }}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>Mateus Amaral</Text>
-          <Text style={styles.subject}>Física</Text>
+          <Text style={styles.name}>{teacher.name}</Text>
+          <Text style={styles.subject}>{teacher.subject}</Text>
         </View>
       </View>
-      <Text style={styles.bio}>Estagiário Desenvolvedor na KFE SOFTWARE</Text>
+      <Text style={styles.bio}>{teacher.bio}</Text>
       <View style={styles.footer}>
         <Text style={styles.price}>
           Preço/hora {"   "}
-          <Text style={styles.priceValue}>R$ 20,00</Text>
+          <Text style={styles.priceValue}>R$ {teacher.cost}</Text>
         </Text>
         <View style={styles.buttonContainer}>
-          <RectButton style={styles.favoriteButton}>
-            <Image source={heartOutlineIcon} />
+          <RectButton
+            onPress={handleToggleFavorited}
+            style={[styles.favoriteButton, isFavorited ? styles.favorited : {}]}
+          >
+            {isFavorited ? (
+              <Image source={unfavoriteIcon} />
+            ) : (
+              <Image source={heartOutlineIcon} />
+            )}
           </RectButton>
-          <RectButton style={styles.contactButton}>
+          <RectButton
+            onPress={handleLinkToWhatsapp}
+            style={styles.contactButton}
+          >
             <Image source={whatsappIcon} />
             <Text style={styles.conctactButtonText}>Entrar em contato</Text>
           </RectButton>
@@ -41,6 +93,6 @@ function TeacherItem() {
       </View>
     </View>
   );
-}
+};
 
 export default TeacherItem;
